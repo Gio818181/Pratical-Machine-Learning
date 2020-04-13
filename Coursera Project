@@ -1,3 +1,5 @@
+# R script performed fot the assignment
+
 # Set libraries 
 
 library(knitr)
