@@ -1,4 +1,3 @@
-# R script performed fot the assignment
 
 # Set libraries 
 
@@ -34,11 +33,11 @@ TestDataSet  <- TestDataSet[, -NZV]
 dim(TrainDataSet)
 dim(TestDataSet)
 
-# Remove variables which contain mostly NA
+# Remove variables which contain mostly missing value 
 
-clnColumnIndex <- colSums(is.na(TrainDataSet))/nrow(TrainDataSet) < 0.95
-TrainDataSet <- TrainDataSet[,clnColumnIndex]
-TestDataSet <- TestDataSet[,clnColumnIndex]
+ColIndex <- colSums(is.na(TrainDataSet))/nrow(TrainDataSet) < 0.95
+TrainDataSet <- TrainDataSet[,ColIndex]
+TestDataSet <- TestDataSet[,ColIndex]
 dim(TrainDataSet)
 dim(TestDataSet)
 
@@ -62,7 +61,7 @@ names(TrainDataSet)[highlyCorr]
 
 #Decision Tree Model
 
-set.seed(13042020)
+set.seed(14042020)
 decisionTreeModel <- rpart(classe ~ ., data=TrainDataSet, method="class")
 fancyRpartPlot(decisionTreeMod)
 
@@ -74,7 +73,7 @@ plot(ConfMatrixTree$table, col = ConfMatrixTree$byClass, main = paste("Decision 
 
 #random forest model
 
-set.seed(13042020)
+set.seed(14042020)
 TrainControlRF <- trainControl(method = "cv",
                         number = 3,
                         allowParallel = TRUE,
@@ -93,4 +92,3 @@ plot(ConfMatrixRF$table, col = ConfMatrixRF$byClass, main = paste("Random Forest
 
 #Final prediction on Test data
 predict(ModelFitRandomForest, newdata = testing_data)
-                
