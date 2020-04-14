@@ -1,4 +1,3 @@
-
 # Set libraries 
 
 library(knitr)
@@ -20,6 +19,7 @@ training_data <- read.csv(url(UrlTrain))
 testing_data  <- read.csv(url(UrlTest))
 
 # Create a partition with the training dataset 
+set.seed(14042020)
 inTrain  <- createDataPartition(training_data$classe, p=0.7, list=FALSE)
 TrainDataSet <- training_data[inTrain, ]
 TestDataSet  <- training_data[-inTrain, ]
@@ -42,7 +42,7 @@ dim(TrainDataSet)
 dim(TestDataSet)
 
 
-# Remove identification only variables (columns 1 to 7)
+# Remove first seven variables (columns 1 to 7)
 TrainDataSet <- TrainDataSet[, -(1:7)]
 TestDataSet  <- TestDataSet[, -(1:7)]
 dim(TrainDataSet)
@@ -92,3 +92,4 @@ plot(ConfMatrixRF$table, col = ConfMatrixRF$byClass, main = paste("Random Forest
 
 #Final prediction on Test data
 predict(ModelFitRandomForest, newdata = testing_data)
+
