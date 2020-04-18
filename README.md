@@ -36,4 +36,5 @@ https://github.com/Gio818181/Pratical-Machine-Learning/blob/gh-pages/machine_lea
 Html Version:
 https://github.com/Gio818181/Pratical-Machine-Learning/blob/gh-pages/machine_learning.html
 RMD Version:
+https://github.com/Gio818181/Pratical-Machine-Learning/blob/gh-pages/machine_learning.Rmd
 
