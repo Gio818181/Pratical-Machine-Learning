@@ -366,11 +366,19 @@ summary {
 </div>
 
 
+<pre class="r"><code># Set libraries 
+
+library(knitr)
+library(caret)</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>library(rpart)
+library(rpart.plot)
+library(rattle)</code></pre>
 <pre><code>## Rattle: A free graphical interface for data science with R.
 ## Version 5.3.0 Copyright (c) 2006-2018 Togaware Pty Ltd.
 ## Type 'rattle()' to shake, rattle, and roll your data.</code></pre>
+<pre class="r"><code>library(randomForest)</code></pre>
 <pre><code>## randomForest 4.6-14</code></pre>
 <pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <pre><code>## 
@@ -381,17 +389,65 @@ summary {
 <pre><code>## The following object is masked from 'package:ggplot2':
 ## 
 ##     margin</code></pre>
+<pre class="r"><code>library(corrplot)</code></pre>
 <pre><code>## corrplot 0.84 loaded</code></pre>
+<pre class="r"><code>library(RColorBrewer)
+library(rmarkdown)</code></pre>
+<pre class="r"><code># Set the URL for the download from external link
+UrlTrain &lt;- &quot;http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;
+UrlTest  &lt;- &quot;http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;
+
+# Download the datasets
+training_data &lt;- read.csv(url(UrlTrain))
+testing_data  &lt;- read.csv(url(UrlTest))
+
+# Create a partition with the training dataset 
+set.seed(14042020)
+inTrain  &lt;- createDataPartition(training_data$classe, p=0.7, list=FALSE)
+TrainDataSet &lt;- training_data[inTrain, ]
+TestDataSet  &lt;- training_data[-inTrain, ]
+dim(TrainDataSet)</code></pre>
 <pre><code>## [1] 13737   160</code></pre>
+<pre class="r"><code>dim(TestDataSet)</code></pre>
 <pre><code>## [1] 5885  160</code></pre>
+<pre class="r"><code># Remove variables with Nearly Zero Variance
+NZV &lt;- nearZeroVar(TrainDataSet)
+TrainDataSet &lt;- TrainDataSet[, -NZV]
+TestDataSet  &lt;- TestDataSet[, -NZV]
+dim(TrainDataSet)</code></pre>
 <pre><code>## [1] 13737   106</code></pre>
+<pre class="r"><code>dim(TestDataSet)</code></pre>
 <pre><code>## [1] 5885  106</code></pre>
+<pre class="r"><code># Remove variables which contain mostly missing value 
+
+ColIndex &lt;- colSums(is.na(TrainDataSet))/nrow(TrainDataSet) &lt; 0.95
+TrainDataSet &lt;- TrainDataSet[,ColIndex]
+TestDataSet &lt;- TestDataSet[,ColIndex]
+dim(TrainDataSet)</code></pre>
 <pre><code>## [1] 13737    59</code></pre>
+<pre class="r"><code>dim(TestDataSet)</code></pre>
 <pre><code>## [1] 5885   59</code></pre>
+<pre class="r"><code># Remove first seven variables (columns 1 to 7)
+TrainDataSet &lt;- TrainDataSet[, -(1:7)]
+TestDataSet  &lt;- TestDataSet[, -(1:7)]
+dim(TrainDataSet)</code></pre>
 <pre><code>## [1] 13737    52</code></pre>
+<pre class="r"><code>dim(TestDataSet)</code></pre>
 <pre><code>## [1] 5885   52</code></pre>
+<pre class="r"><code># Correlation analysis
+
+corMat &lt;- cor(TrainDataSet[, -52])
+highlyCorr = findCorrelation(corMat, cutoff=0.9)
+names(TrainDataSet)[highlyCorr]</code></pre>
 <pre><code>## [1] &quot;accel_belt_z&quot;     &quot;accel_belt_y&quot;     &quot;accel_belt_x&quot;     &quot;gyros_dumbbell_x&quot;
 ## [5] &quot;gyros_dumbbell_z&quot; &quot;gyros_arm_x&quot;</code></pre>
+<pre class="r"><code>set.seed(14042020)
+decisionTreeModel &lt;- rpart(classe ~ ., data=TrainDataSet, method=&quot;class&quot;)
+
+
+predictTreeModel &lt;- predict(decisionTreeModel, TestDataSet, type = &quot;class&quot;)
+ConfMatrixTree &lt;- confusionMatrix(predictTreeModel, TestDataSet$classe)
+ConfMatrixTree</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -424,6 +480,13 @@ summary {
 ## Detection Rate         0.2583   0.1025   0.1195   0.1152   0.1077
 ## Detection Prevalence   0.3368   0.1584   0.1726   0.1985   0.1337
 ## Balanced Accuracy      0.8991   0.7300   0.8104   0.8019   0.7770</code></pre>
+<pre class="r"><code>set.seed(14042020)
+TrainControlRF &lt;- trainControl(method = &quot;cv&quot;,
+                        number = 3,
+                        allowParallel = TRUE,
+                        verboseIter = TRUE)
+ModelFitRandomForest &lt;- train(classe ~ ., data=TrainDataSet, method=&quot;rf&quot;,
+                          trControl=TrainControlRF,ntree=100,importance=TRUE)</code></pre>
 <pre><code>## + Fold1: mtry= 2 
 ## - Fold1: mtry= 2 
 ## + Fold1: mtry=26 
@@ -445,6 +508,7 @@ summary {
 ## Aggregating results
 ## Selecting tuning parameters
 ## Fitting mtry = 26 on full training set</code></pre>
+<pre class="r"><code>ModelFitRandomForest$finalModel</code></pre>
 <pre><code>## 
 ## Call:
 ##  randomForest(x = x, y = y, ntree = 100, mtry = param$mtry, importance = TRUE) 
@@ -460,6 +524,9 @@ summary {
 ## C    0   17 2375    4    0 0.008764608
 ## D    1    1   25 2223    2 0.012877442
 ## E    0    1    4   10 2510 0.005940594</code></pre>
+<pre class="r"><code>PredictRF &lt;- predict(ModelFitRandomForest, newdata=TestDataSet)
+ConfMatrixRF &lt;- confusionMatrix(PredictRF, TestDataSet$classe)
+ConfMatrixRF</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -492,6 +559,7 @@ summary {
 ## Detection Rate         0.2843   0.1907   0.1728   0.1601   0.1823
 ## Detection Prevalence   0.2865   0.1913   0.1771   0.1621   0.1830
 ## Balanced Accuracy      0.9982   0.9921   0.9930   0.9874   0.9954</code></pre>
+<pre class="r"><code>predict(ModelFitRandomForest, newdata = testing_data)</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
 
