@@ -1,3 +1,4 @@
+
 # Set libraries 
 
 library(knitr)
@@ -63,7 +64,7 @@ names(TrainDataSet)[highlyCorr]
 
 set.seed(14042020)
 decisionTreeModel <- rpart(classe ~ ., data=TrainDataSet, method="class")
-fancyRpartPlot(decisionTreeMod)
+fancyRpartPlot(decisionTreeModel)
 
 predictTreeModel <- predict(decisionTreeModel, TestDataSet, type = "class")
 ConfMatrixTree <- confusionMatrix(predictTreeModel, TestDataSet$classe)
@@ -84,8 +85,8 @@ ModelFitRandomForest$finalModel
 
 varImp(ModelFitRandomForest)
 
-PredictRF <- predict(ModelFitRandomForest, newdata=TestSet)
-ConfMatrixRF <- confusionMatrix(PredictRF, TestSet$classe)
+PredictRF <- predict(ModelFitRandomForest, newdata=TestDataSet)
+ConfMatrixRF <- confusionMatrix(PredictRF, TestDataSet$classe)
 ConfMatrixRF
 
 plot(ConfMatrixRF$table, col = ConfMatrixRF$byClass, main = paste("Random Forest Model - Confusion Matrix: Accuracy =", round(ConfMatrixRF$overall['Accuracy'], 4)))
